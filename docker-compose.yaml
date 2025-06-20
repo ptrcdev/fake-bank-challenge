@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: ./fake-bank
+      dockerfile: Dockerfile
+    container_name: fake-bank-graphql
+    ports:
+      - '3000:3000'
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=admin
+      - DB_PASSWORD=password
+      - DB_NAME=fake_bank
+      - JWT_SECRET=eab375d745ecabb51c9ce3f249e2f4ee34b9b4a9dddd17d3547892067149c94d
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./fake-bank-frontend
+      dockerfile: Dockerfile
+    container_name: fake-bank-frontend
+    ports:
+      - '3001:3001'
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000/graphql
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    container_name: fake-bank-psql
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fake_bank
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
