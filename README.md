@@ -20,23 +20,25 @@ Clean architecture, TypeORM, and solid error handling.
 1. **Clone the repo**
 
 ```bash
-git clone https://your-repo-url.git
-cd your-project-folder
+git clone git@github.com:ptrcdev/fake-bank-challenge.git
+cd fake-bank-challenge
 ```
 
-2. Install dependencies
+2. Install dependencies for each directory
 
 ```bash
+cd fake-bank
 npm install
-# or
-yarn install
+# and
+cd fake-bank-frontend
+npm install
 ```
 
 3. Configure environment variables
 
-Create a .env file in the root (or copy .env.example) with your database settings and any other necessary config.
+Create a .env file in the root of each directory (or copy .env.example) with your database settings and any other necessary config.
 
-Example:
+Example for backend: 
 
 ```ini
 DATABASE_HOST=localhost
@@ -46,21 +48,23 @@ DATABASE_PASSWORD=your_db_password
 DATABASE_NAME=fake_bank
 JWT_SECRET=your_jwt_secret
 ```
+
 4. Start the app
 
 ```bash
-npm run start:dev
+docker-compose up --build
 ```
-The API will run on `http://localhost:3000` by default.
+The GraphQL will run on `http://localhost:3000/graphql` by default.
 
 ## Verify Everything Works
 
-### Run tests
+### Run tests for backend
 
 ```bash
+cd fake-bank
 npm run test
 ```
-This will run all unit and integration tests using Jest. Make sure all tests pass before pushing or deploying.
+This will run all unit tests using Jest. Make sure all tests pass before pushing or deploying.
 
 ### Check API endpoints
 Once running, you can verify endpoints with:
@@ -68,8 +72,6 @@ Once running, you can verify endpoints with:
 - Postman/Insomnia
 
 - Curl requests
-
-<!-- - Swagger UI (if you added it at /api) -->
 
 ### Example Deposit Request for an Authenticated User (GraphQL)
 
@@ -82,15 +84,6 @@ Check user balance updates accordingly.
 
 Or simply go to `http://localhost:3000/graphql` and try it out on the playground.
 
-## Scripts Summary
-| Script                          | Description                                      |
-| ------------------------------- | ------------------------------------------------|
-| `npm run start`                 | Start the app in production mode                 |
-| `npm run start:dev`             | Start the app in development mode with hot reload|
-| `npm run test`                  | Run all tests                                    |
-| `npm run test:watch`            | Run tests in watch mode                          |
-| `npm run typeorm:migration:run`| Run database migrations                          |
-
 ## Tech Stack
 - NestJS
 
@@ -100,12 +93,18 @@ Or simply go to `http://localhost:3000/graphql` and try it out on the playground
 
 - Jest for testing
 
+- GraphQL
+
+- Next.js
+
 ## Notes
 Make sure your PostgreSQL is running and accessible before starting the app.
 
 Password hashing and auth logic handled in the AuthService, so pass already hashed passwords when creating users manually.
 
-## 🐳 Containerization with Docker (optional)
+## 🐳 Containerization with Docker
+
+### Backend
 
 ### 1. Service Architecture
 
@@ -124,7 +123,7 @@ JWT_SECRET=eab375d745ecabb51c9ce3f249e2f4ee34b9b4a9dddd17d3547892067149c94d
 ```
 ### 3. Dockerfile
 ```Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -140,3 +139,37 @@ EXPOSE 3000
 
 CMD ["npm", "run", "start:prod"]
 ```
+
+## 🐳 Containerization with Docker
+
+### Frontend
+
+### 1. Service Architecture
+
+- Next.js (exposed on port 3001)
+
+### 2. Create a `.env` file
+
+```ini
+NEXT_PUBLIC_API_URL=http://localhost:3000/graphql
+```
+### 3. Dockerfile
+```Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 3001
+
+CMD ["npm", "run", "start"]
+```
+
+## Note
+To run both services, run `docker-compose up --build` and access the frontend at `http://localhost:3001`
